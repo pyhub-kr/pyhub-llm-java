@@ -1,0 +1,176 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }} with JDK ${{ matrix.java }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        java: [8, 11, 17, 21]
+        exclude:
+          # Windows와 macOS에서는 JDK 8, 21만 테스트 (시간 절약)
+          - os: windows-latest
+            java: 11
+          - os: windows-latest
+            java: 17
+          - os: macos-latest
+            java: 11
+          - os: macos-latest
+            java: 17
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK ${{ matrix.java }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ matrix.java }}
+        distribution: 'temurin'
+        
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ matrix.java }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-${{ matrix.java }}-
+          ${{ runner.os }}-gradle-
+          
+    - name: Grant execute permission for gradlew
+      if: runner.os != 'Windows'
+      run: chmod +x gradlew
+      
+    - name: Build with Gradle
+      run: ./gradlew build --no-daemon --console=plain
+      
+    - name: Run tests
+      run: ./gradlew test --no-daemon --console=plain
+      
+    - name: Generate test report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: Test Results (${{ matrix.os }}, JDK ${{ matrix.java }})
+        path: build/test-results/test/*.xml
+        reporter: java-junit
+        fail-on-error: false
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ matrix.os }}-jdk${{ matrix.java }}
+        path: |
+          build/test-results/
+          build/reports/tests/
+          
+    - name: Upload coverage reports to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.java == '11'
+      uses: codecov/codecov-action@v4
+      with:
+        file: build/reports/jacoco/test/jacocoTestReport.xml
+        fail_ci_if_error: false
+        
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: 11
+        distribution: 'temurin'
+        
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ubuntu-gradle-11-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ubuntu-gradle-11-
+          ubuntu-gradle-
+          
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Run code quality checks
+      run: |
+        ./gradlew build javadoc --no-daemon --console=plain
+        
+    - name: Upload Javadoc
+      uses: actions/upload-artifact@v4
+      with:
+        name: javadoc
+        path: build/docs/javadoc/
+        
+  build-examples:
+    name: Build Examples
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: 11
+        distribution: 'temurin'
+        
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ubuntu-gradle-11-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ubuntu-gradle-11-
+          ubuntu-gradle-
+          
+    - name: Build main project
+      run: |
+        chmod +x gradlew
+        ./gradlew build publishToMavenLocal --no-daemon --console=plain
+        
+    - name: Test examples/0001-java-cli-chat
+      run: |
+        cd examples/0001-java-cli-chat
+        chmod +x gradlew
+        ./gradlew build test --no-daemon --console=plain
+        
+    - name: Test examples/0002-upstage-cli-chat
+      run: |
+        cd examples/0002-upstage-cli-chat
+        chmod +x gradlew
+        ./gradlew build test --no-daemon --console=plain
+        
+    - name: Upload example artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: examples-build
+        path: |
+          examples/*/build/libs/
+          examples/*/build/reports/tests/

@@ -141,5 +141,17 @@ temp/
 *.pem
 secrets.properties
 
+# GPG 관련 파일들 (보안)
+.gnupg/
+*.asc
+*.gpg
+secring.gpg
+
+# 배포 테스트 디렉토리
+deployment-test/
+
+# Claude 로컬 설정
+.claude/settings.local.json
+
 .tool-versions
 
