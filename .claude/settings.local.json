@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(gradle:*)",
+      "Bash(mkdir:*)",
+      "Bash(curl:*)",
+      "Bash(chmod:*)",
+      "Bash(./gradlew test:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(mv:*)",
+      "Bash(./gradlew compileJava:*)",
+      "Bash(jar tf:*)",
+      "Bash(jar:*)",
+      "Bash(javap:*)",
+      "Bash(./gradlew compileTestJava:*)",
+      "Bash(./gradlew build:*)",
+      "Bash(rm:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}
