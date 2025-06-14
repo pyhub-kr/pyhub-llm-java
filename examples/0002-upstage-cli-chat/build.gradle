@@ -1,0 +1,81 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'kr.pyhub.llm.examples'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // OpenAI SDK
+    implementation 'com.openai:openai-java:2.7.0'
+    
+    // Anthropic SDK
+    implementation 'com.anthropic:anthropic-java:2.1.0'
+    
+    // 필수 의존성들
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.16.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.16.0'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.3'
+    
+    // Reactive Streams (for streaming support)
+    implementation 'io.projectreactor:reactor-core:3.4.33'
+    
+    // Caching
+    implementation 'com.github.ben-manes.caffeine:caffeine:2.9.3'
+    
+    // 로깅
+    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'ch.qos.logback:logback-classic:1.2.12'
+    
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    
+    // pyhub-llm 라이브러리 소스 직접 포함
+    implementation files('../../build/libs/pyhub-llm-java-0.1.0-SNAPSHOT.jar')
+    
+    // JUnit 5 테스트 의존성
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.3'
+    testImplementation 'org.mockito:mockito-core:5.3.1'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
+}
+
+application {
+    mainClass = 'kr.pyhub.llm.examples.upstage.UpstageCliChat'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+test {
+    useJUnitPlatform()
+}
+
+run {
+    standardInput = System.in
+    environment 'UPSTAGE_API_KEY', System.getenv('UPSTAGE_API_KEY')
+    
+    // Gradle 진행 표시줄 비활성화
+    logging.captureStandardOutput LogLevel.ERROR
+    logging.captureStandardError LogLevel.ERROR
+}
+
+// JAR 파일 생성 설정
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'kr.pyhub.llm.examples.upstage.UpstageCliChat'
+        )
+    }
+}

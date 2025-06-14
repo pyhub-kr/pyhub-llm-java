@@ -140,3 +140,6 @@ temp/
 *.key
 *.pem
 secrets.properties
+
+.tool-versions
+

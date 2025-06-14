@@ -1,0 +1,118 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'kr.pyhub.llm.examples'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // OpenAI SDK
+    implementation 'com.openai:openai-java:2.7.0'
+    
+    // Anthropic SDK
+    implementation 'com.anthropic:anthropic-java:2.1.0'
+    
+    // HTTP 클라이언트
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    
+    // JSON 처리
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.16.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.16.0'
+    
+    // Reactive Streams (for streaming support)
+    implementation 'io.projectreactor:reactor-core:3.4.33'
+    
+    // Caching
+    implementation 'com.github.ben-manes.caffeine:caffeine:2.9.3'
+    
+    // 로깅
+    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'ch.qos.logback:logback-classic:1.2.12'
+    
+    // 메인 라이브러리 소스 직접 포함
+    implementation files('../../build/libs/pyhub-llm-java-0.1.0-SNAPSHOT.jar')
+}
+
+application {
+    mainClass = 'kr.pyhub.llm.examples.cli.JavaCliChat'
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+// 별도의 Fat JAR 생성 태스크
+task fatJar(type: Jar) {
+    description = 'Create a fat JAR with all dependencies'
+    group = 'build'
+    
+    manifest {
+        attributes(
+            'Main-Class': 'kr.pyhub.llm.examples.cli.JavaCliChat'
+        )
+    }
+    
+    archiveBaseName = 'java-cli-chat-fat'
+    
+    from sourceSets.main.output
+    
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// 실행 태스크 설정
+run {
+    // 표준 입력을 연결하여 대화형 모드 지원
+    standardInput = System.in
+    
+    // 환경변수 전달
+    if (System.getenv('OPENAI_API_KEY')) {
+        environment 'OPENAI_API_KEY', System.getenv('OPENAI_API_KEY')
+    }
+    if (System.getenv('UPSTAGE_API_KEY')) {
+        environment 'UPSTAGE_API_KEY', System.getenv('UPSTAGE_API_KEY')
+    }
+    
+    // Gradle 진행 표시줄 비활성화 (대화형 모드와 충돌 방지)
+    logging.captureStandardOutput LogLevel.ERROR
+    logging.captureStandardError LogLevel.ERROR
+}
+
+// API 키와 함께 실행하는 태스크
+task runWithApiKey(type: JavaExec) {
+    description = 'Run the CLI chat with API key argument'
+    group = 'application'
+    
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'kr.pyhub.llm.examples.cli.JavaCliChat'
+    
+    standardInput = System.in
+    
+    // 사용법: ./gradlew runWithApiKey -Papi.key=YOUR_API_KEY
+    if (project.hasProperty('api.key')) {
+        args '--api-key', project.property('api.key')
+    } else {
+        doFirst {
+            println "사용법: ./gradlew runWithApiKey -Papi.key=YOUR_API_KEY"
+        }
+    }
+}

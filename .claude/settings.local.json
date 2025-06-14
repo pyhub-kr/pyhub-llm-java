@@ -18,7 +18,18 @@
       "Bash(./gradlew build:*)",
       "Bash(rm:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(cp:*)",
+      "Bash(./gradlew --stop)",
+      "Bash(./gradlew:*)",
+      "Bash(asdf plugin-add:*)",
+      "Bash(asdf plugin:*)",
+      "Bash(asdf list:*)",
+      "Bash(asdf install:*)",
+      "Bash(asdf local:*)",
+      "Bash(java:*)",
+      "Bash(./run.sh:*)",
+      "Bash(timeout:*)"
     ],
     "deny": []
   }

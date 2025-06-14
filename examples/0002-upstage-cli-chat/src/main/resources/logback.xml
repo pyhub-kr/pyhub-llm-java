@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 애플리케이션 로그는 INFO 레벨로 -->
+    <logger name="kr.pyhub.llm" level="INFO"/>
+    
+    <!-- HTTP 요청/응답 디버깅이 필요한 경우 DEBUG로 변경 -->
+    <logger name="okhttp3" level="WARN"/>
+    
+    <!-- 루트 로거 -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
