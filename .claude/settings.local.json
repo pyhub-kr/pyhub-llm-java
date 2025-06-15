@@ -29,7 +29,14 @@
       "Bash(asdf local:*)",
       "Bash(java:*)",
       "Bash(./run.sh:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(../gradlew run:*)",
+      "Bash(grep:*)",
+      "Bash(git tag:*)",
+      "Bash(git push:*)",
+      "Bash(git commit:*)",
+      "Bash(git reset:*)",
+      "Bash(git restore:*)"
     ],
     "deny": []
   }

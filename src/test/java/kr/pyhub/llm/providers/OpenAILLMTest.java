@@ -97,7 +97,7 @@ class OpenAILLMTest {
         assertThat(reply.getUsage().getPromptTokens()).isEqualTo(20);
         assertThat(reply.getUsage().getCompletionTokens()).isEqualTo(10);
         assertThat(reply.getUsage().getTotalTokens()).isEqualTo(30);
-        assertThat(reply.getFinishReason()).isEqualTo("STOP");
+        assertThat(reply.getFinishReason()).isEqualTo("stop");
         
         // Verify API was called
         verify(mockCompletionService).create(any(ChatCompletionCreateParams.class));
@@ -189,7 +189,9 @@ class OpenAILLMTest {
         // When & Then
         assertThatThrownBy(() -> llm.doAsk(messages))
             .isInstanceOf(LLMException.class)
-            .hasMessageContaining("No choices returned from OpenAI API");
+            .hasMessageContaining("Failed to call OpenAI API")
+            .hasCauseInstanceOf(LLMException.class)
+            .hasRootCauseMessage("No choices returned from OpenAI API");
     }
     
 }

@@ -43,7 +43,7 @@ class MemoryCacheTest {
     
     @Test
     @DisplayName("최대 크기 제한이 동작해야 함")
-    void shouldRespectMaxSize() {
+    void shouldRespectMaxSize() throws InterruptedException {
         // Given
         cache = new MemoryCache(2, 1, TimeUnit.HOURS); // 최대 2개 항목
         
@@ -51,6 +51,9 @@ class MemoryCacheTest {
         cache.put("key1", LLMReply.builder().text("Value 1").build());
         cache.put("key2", LLMReply.builder().text("Value 2").build());
         cache.put("key3", LLMReply.builder().text("Value 3").build()); // 이것이 key1을 제거해야 함
+        
+        // Caffeine은 비동기로 eviction을 수행하므로 약간의 시간이 필요
+        Thread.sleep(100);
         
         // Then
         assertThat(cache.get("key1")).isEmpty(); // 제거됨

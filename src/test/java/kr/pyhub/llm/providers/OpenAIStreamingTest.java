@@ -52,9 +52,9 @@ class OpenAIStreamingTest {
         
         // Then
         StepVerifier.create(stream)
-            .expectNextMatches(chunk -> !chunk.isFinished())
-            .expectNextCount(2) // "response" 단어 수에 따라
-            .expectNextMatches(chunk -> chunk.isFinished())
+            .expectNextMatches(chunk -> chunk.getContent() != null && !chunk.isFinished())
+            .expectNextMatches(chunk -> chunk.getContent() != null && !chunk.isFinished())
+            .expectNextMatches(chunk -> chunk.isFinished() && chunk.getFinishReason() != null)
             .verifyComplete();
     }
     

@@ -5,6 +5,7 @@ import kr.pyhub.llm.types.Message;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,6 +34,7 @@ class UpstageLLMTest {
     
     @Test
     @DisplayName("API 키가 없으면 예외를 던져야 함")
+    @DisabledIfEnvironmentVariable(named = "UPSTAGE_API_KEY", matches = ".+")
     void shouldThrowExceptionWhenApiKeyMissing() {
         // Given
         Config configWithoutApiKey = Config.builder()
@@ -82,6 +84,7 @@ class UpstageLLMTest {
     
     @Test
     @DisplayName("환경변수에서 API 키를 가져올 수 있어야 함")
+    @DisabledIfEnvironmentVariable(named = "UPSTAGE_API_KEY", matches = ".+")
     void shouldUseApiKeyFromEnvironment() {
         // Given
         Config configWithoutApiKey = Config.builder()
@@ -94,5 +97,28 @@ class UpstageLLMTest {
         assertThatThrownBy(() -> new UpstageLLM(TEST_MODEL, configWithoutApiKey))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("UPSTAGE_API_KEY");
+    }
+    
+    @Test
+    @DisplayName("환경변수가 설정되어 있으면 그것을 사용해야 함")
+    void shouldUseApiKeyFromEnvironmentWhenPresent() {
+        // Given
+        String envApiKey = System.getenv("UPSTAGE_API_KEY");
+        if (envApiKey == null || envApiKey.trim().isEmpty()) {
+            // 환경변수가 없으면 테스트 건너뛰기
+            return;
+        }
+        
+        Config configWithoutApiKey = Config.builder()
+            .apiKey("")  // 빈 문자열로 설정
+            .temperature(0.7)
+            .build();
+        
+        // When
+        UpstageLLM llm = new UpstageLLM(TEST_MODEL, configWithoutApiKey);
+        
+        // Then
+        assertThat(llm).isNotNull();
+        assertThat(llm.getModel()).isEqualTo(TEST_MODEL);
     }
 }
